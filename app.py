@@ -94,7 +94,7 @@ def delete():
     db.session.delete(removePost)
     db.session.commit()
 
-    return redirect('')
+    return redirect('https://creer.gamma410.win/')
 
 
 if __name__ == "__main__":
