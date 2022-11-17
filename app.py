@@ -3,32 +3,40 @@
 # CRÉER Live Streaming Platform.
 # This sourceCode is CRÉER's serverSystem.
 
+
 from flask import Flask, render_template, request, redirect, jsonify
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
-from json_serializable import JSONSerializable # SpecialThanks...!
+from werkzeug.security import generate_password_hash, check_password_hash
+from json_serializable import JSONSerializable  # SpecialThanks...!
 
+import random
+import string
+import datetime
 
-# Random String
-import random, string
+url = "http://localhost:8080"
+
 def randomString(n):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
 
+
 # Date Get
-import datetime
 t_delta = datetime.timedelta(hours=9)
 JST = datetime.timezone(t_delta, 'JST')
 now = datetime.datetime.now(JST)
 
 
 app = Flask(__name__)
+
 CORS(
     app,
     supports_credentials=True
 )
 
-JSONSerializable(app) # SpecialThanks...!
+JSONSerializable(app)  # SpecialThanks...!
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///postData.db'
 app.config['SCRET_KEY'] = '5730292743938474948439320285857603'
@@ -38,11 +46,11 @@ db = SQLAlchemy(app)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    userName = db.Column(db.String(20), nullable=False)
+    tag = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(20), nullable=False)
     videoDetail = db.Column(db.Text, nullable=False)
     videoTitleHex = db.Column(db.Text, nullable=False)
-    status = db.Column(db.Integer) # 1 = OPEN / 2 = CLOSE
+    status = db.Column(db.Integer)  # 1 = OPEN / 2 = CLOSE
 
 
 @app.route('/')
@@ -58,43 +66,50 @@ def lives(id):
 
     return jsonify(lives)
 
-@app.route('/post', methods=['GET','POST'])
+
+@app.route('/search/<string:videoTitleHex>')
+def search(videoTitleHex):
+    lives = Post.query.filter_by(videoTitleHex=videoTitleHex).first()
+
+    return jsonify(lives)
+
+
+@app.route('/post', methods=['GET', 'POST'])
 def post():
-    if request.method == "POST":
-        userName = request.args['userName']
-        title = request.args['title']
-        videoDetail = request.args['videoDetail']
-        videoHex1 = randomString(10)
-        videoHex2 = now.strftime('%Y%m%d%H%M%S')
-        videoTitleHex = videoHex1 + "-" + videoHex2
-        status = 1
+    tag = "#" + request.args['tag']
+    title = request.args['title']
+    videoDetail = request.args['videoDetail']
+    videoHex1 = randomString(10)
+    videoHex2 = now.strftime('%Y%m%d%H%M%S')
+    videoTitleHex = videoHex1 + "-" + videoHex2
+    status = 1
 
-        createPost = Post (
-            userName = userName,
-            title = title, 
-            videoDetail = videoDetail,
-            videoTitleHex = videoTitleHex,
-            status = status
-        )
+    createPost = Post(
+        tag=tag,
+        title=title,
+        videoDetail=videoDetail,
+        videoTitleHex=videoTitleHex,
+        status=status
+    )
 
-        db.session.add(createPost)
-        db.session.commit()
+    db.session.add(createPost)
+    db.session.commit()
+    
+    lives = Post.query.filter_by(videoTitleHex=videoTitleHex).first()
 
-        return "POST"
+    return redirect(url + '/manage/' + str(lives.videoTitleHex))
 
-    else:
-        return ""
 
 @app.route('/delete', methods=['GET', 'POST'])
 def delete():
     liveId = request.args['id']
-
     removePost = Post.query.get(liveId)
 
     db.session.delete(removePost)
     db.session.commit()
 
-    return redirect('https://creer.gamma410.win/')
+    return redirect(url + '/manage')
+
 
 
 if __name__ == "__main__":

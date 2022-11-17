@@ -3,12 +3,17 @@
 ## "/"
 属性: <code>GET</code>  
 
-投稿されたライブ配信データを取得することができます。  
+投稿された全てのライブ配信データを取得することができます。  
   
 ## "/lives/:id"
 属性: <code>GET</code>  
 
-指定された id のライブ配信データを取得することができます。  
+指定された id (int) のライブ配信データを取得することができます。  
+  
+## "/search/:videoTextHex"
+属性: <code>GET</code>  
+
+指定された id (string) のライブ配信データを取得することができます。  
   
 
 ## "/post"　
@@ -17,7 +22,7 @@
 新規でライブ配信枠を作成することができます。
 
 ### クエリパラメータ
-- userName=(string)
+- tag=(string)
 - title=(string)
 - videoDetail=(string)
 
@@ -29,3 +34,4 @@
 
 ### クエリパラメータ
 - id=(int)
+
