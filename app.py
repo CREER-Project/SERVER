@@ -16,7 +16,7 @@ import random
 import string
 import datetime
 
-url = "http://localhost:8080"
+url = "https://creer.gamma410.win"
 
 def randomString(n):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=n))
